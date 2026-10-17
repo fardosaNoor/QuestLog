@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join QuestLog</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <main class="auth-card">
+        <h1>Begin Your Adventure</h1>
+        <p>Create your QuestLog student account.</p>
+
+        <p th:if="${error}" th:text="${error}" role="alert"></p>
+
+        <form th:action="@{/register}" method="post">
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text"
+                   maxlength="100" required autocomplete="name">
+
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email"
+                   maxlength="254" required autocomplete="email">
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password"
+                   minlength="8" required autocomplete="new-password">
+
+            <label for="confirmPassword">Confirm password</label>
+            <input id="confirmPassword" name="confirmPassword"
+                   type="password" minlength="8" required
+                   autocomplete="new-password">
+
+            <button type="submit">Create Account</button>
+        </form>
+
+        <p>Already have an account?
+            <a th:href="@{/login}">Log in</a>
+        </p>
+    </main>
+</body>
+</html>
