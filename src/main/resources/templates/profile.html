@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile - QuestLog</title>
+</head>
+<body>
+
+    <h1>My QuestLog Profile</h1>
+
+    <h2>Personal Information</h2>
+
+    <p>
+        <strong>Name:</strong>
+        <span th:text="${user.name}">Student Name</span>
+    </p>
+
+    <p>
+        <strong>Email:</strong>
+        <span th:text="${user.email}">student@example.com</span>
+    </p>
+
+    <p>
+    <a th:href="@{/profile/edit}">Edit Profile</a>
+    </p>
+
+    <a th:href="@{/dashboard}">Back to Dashboard</a>
+
+</body>
+</html>
