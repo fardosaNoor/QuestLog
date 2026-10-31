@@ -38,4 +38,8 @@ public class AppUser {
     public String getPassword() {
         return password;
     }
+
+    public void setName(String name) {
+    this.name = name;
+    }
 }
