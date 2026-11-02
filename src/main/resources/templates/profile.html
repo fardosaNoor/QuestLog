@@ -1,31 +1,236 @@
-
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
     <title>My Profile - QuestLog</title>
+    <link rel="stylesheet" th:href="@{/css/profile.css}">
 </head>
+
 <body>
+    <main class="profile-container">
+        <!-- PAGE HEADER -->
+        <header class="profile-header">
+            <div>
+                <h1>✨ My QuestLog Profile</h1>
+                <p>
+                    Your learning journey, progress,
+                    and goals in one place.
+                </p>
+            </div>
 
-    <h1>My QuestLog Profile</h1>
+            <a class="profile-link"
+              th:href="@{/dashboard}">
+                Back to Dashboard
+            </a>
+        </header>
 
-    <h2>Personal Information</h2>
 
-    <p>
-        <strong>Name:</strong>
-        <span th:text="${user.name}">Student Name</span>
-    </p>
 
-    <p>
-        <strong>Email:</strong>
-        <span th:text="${user.email}">student@example.com</span>
-    </p>
 
-    <p>
-    <a th:href="@{/profile/edit}">Edit Profile</a>
-    </p>
+        <!-- PERSONAL INFORMATION -->
+        <section class="profile-section">
 
-    <a th:href="@{/dashboard}">Back to Dashboard</a>
+            <h2>👤 Personal Information</h2>
+
+            <div class="info-grid">
+
+                <div class="info-box">
+                    <span class="info-label">Name</span>
+                    <strong th:text="${user.name}">
+                        Student Name
+                    </strong>
+                </div>
+
+                <div class="info-box">
+                    <span class="info-label">Email</span>
+                    <strong th:text="${user.email}">
+                        student@example.com
+                    </strong>
+                </div>
+
+            </div>
+
+            <a class="profile-link"
+              th:href="@{/profile/edit}">
+                Edit Profile
+            </a>
+
+        </section>
+
+
+        <!-- BADGE COLLECTION -->
+        <section class="profile-section">
+
+            <h2>🏅 My Badges</h2>
+
+            <p class="section-description">
+                Complete tasks and build your streak
+                to unlock these achievements!
+            </p>
+
+            <div class="badges">
+
+                <div class="badge">
+                    <div class="badge-icon">🏅</div>
+                    <h3>First Quest</h3>
+                    <p>Complete your first task</p>
+                    <span class="locked">🔒 Locked</span>
+                </div>
+
+                <div class="badge">
+                    <div class="badge-icon">🔥</div>
+                    <h3>7-Day Streak</h3>
+                    <p>
+                        Complete tasks for 7
+                        consecutive days
+                    </p>
+                    <span class="locked">🔒 Locked</span>
+                </div>
+
+                <div class="badge">
+                    <div class="badge-icon">⭐</div>
+                    <h3>Task Master</h3>
+                    <p>Complete 10 tasks</p>
+                    <span class="locked">🔒 Locked</span>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- MY COLLECTION -->
+        <section class="profile-section">
+
+            <h2>🎒 My Collection</h2>
+
+            <p class="section-description">
+                Your purchased items from the XP Shop
+                will appear here.
+            </p>
+
+            <div class="collection-empty">
+                <div class="collection-icon">🎁</div>
+                <h3>Your collection is empty</h3>
+                <p>
+                    Visit the XP Shop to collect avatars,
+                    profile frames, and themes!
+                </p>
+            </div>
+
+        </section>
+
+        <!-- STREAK GOAL AND PROGRESS -->
+        <div class="progress-grid">
+
+            <!-- STREAK GOAL -->
+            <section class="profile-section">
+
+                <h2>🎯 My Streak Goal</h2>
+
+                <p class="section-description">
+                    Choose how many consecutive study
+                    days you want to achieve.
+                </p>
+
+                <div class="goal-display">
+                    Current Goal:
+                    <strong th:text="${profile.streakGoal}">
+                        7
+                    </strong>
+                    days
+                </div>
+
+                <form class="goal-form"
+                      th:action="@{/profile/streak-goal}"
+                      method="post">
+
+                    <!-- Spring Security CSRF token -->
+                    <input type="hidden"
+                          th:name="${_csrf.parameterName}"
+                          th:value="${_csrf.token}">
+
+                    <label for="streakGoal">
+                        Choose Your Goal:
+                    </label>
+
+                    <select id="streakGoal"
+                            name="streakGoal">
+
+                        <option value="7"
+                                th:selected="${profile.streakGoal == 7}">
+                            7 Days
+                        </option>
+
+                        <option value="14"
+                                th:selected="${profile.streakGoal == 14}">
+                            14 Days
+                        </option>
+
+                        <option value="30"
+                                th:selected="${profile.streakGoal == 30}">
+                            30 Days
+                        </option>
+
+                    </select>
+
+                    <button type="submit">
+                        Save Goal
+                    </button>
+
+                </form>
+
+            </section>
+
+
+            <!-- STUDY STREAK -->
+            <section class="profile-section streak-card">
+
+                <h2>🔥 My Study Streak</h2>
+
+                <p class="section-description">
+                    Track your daily study consistency
+                    toward your goal.
+                </p>
+
+                <div class="goal-display">
+                    Your Goal:
+                    <strong th:text="${profile.streakGoal}">
+                        7
+                    </strong>
+                    days
+                </div>
+
+                <p class="tracking-status">
+                    Tracking not connected yet
+                </p>
+
+                <div class="streak-progress"
+                    role="progressbar"
+                    aria-label="Study streak progress unavailable"
+                    aria-valuetext="Tracking not connected yet">
+
+                    <div class="streak-progress-fill"
+                        style="width: 0%;">
+                    </div>
+
+                </div>
+
+                <p class="streak-unavailable">
+                    Your streak progress will appear
+                    when task completion tracking
+                    is connected.
+                </p>
+
+            </section>
+
+            
+
+        </div>
+
+    </main>
 
 </body>
 </html>
