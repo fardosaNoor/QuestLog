@@ -260,6 +260,29 @@ button:focus-visible, a:focus-visible {
     .logo {
         font-size: 1.1rem;
     }
+
+        /* My Collection */
+    .collection-empty {
+        padding: 36px 20px;
+        text-align: center;
+        background: var(--lavender-light);
+        border: 1px dashed var(--lavender);
+        border-radius: 16px;
+    }
+
+    .collection-icon {
+        font-size: 42px;
+        margin-bottom: 12px;
+    }
+
+    .collection-empty h3 {
+        color: var(--lavender-dark);
+        margin: 8px 0;
+    }
+
+    .collection-empty p {
+        color: var(--muted);
+    }
 }
 
 .coin-balance {

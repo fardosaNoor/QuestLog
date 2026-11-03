@@ -1,4 +1,3 @@
-
 package ca.sfu.QuestLog;
 
 import java.util.Optional;

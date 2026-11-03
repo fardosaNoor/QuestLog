@@ -42,7 +42,17 @@ public class AppUser {
         return password;
     }
 
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
     public int getCoins() {
         return coins;
     }
+ 
 }
