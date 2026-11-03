@@ -253,4 +253,158 @@ body {
     .profile-container {
         margin: 28px auto;
     }
+
+    
+
+/* EDIT PROFILE PAGE */
+
+.edit-page {
+    width: min(100% - 32px, 650px);
+    margin: 70px auto;
+}
+
+.edit-card {
+    background: #ffffff;
+    border: 1px solid #e9e2f2;
+    border-radius: 24px;
+    padding: 36px;
+    box-shadow: 0 10px 30px rgba(75, 55, 110, 0.08);
+}
+
+.edit-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.edit-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: #eee9fb;
+    border: 3px solid #8b78c6;
+    color: #6f5aa8;
+    font-size: 32px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.edit-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.edit-header p {
+    margin: 0;
+    color: #81798f;
+}
+
+.edit-divider {
+    border: none;
+    border-top: 1px solid #e9e2f2;
+    margin: 28px 0;
+}
+
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.edit-field label {
+    display: block;
+    font-weight: 700;
+    color: #342d46;
+}
+
+.edit-field input {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #e9e2f2;
+    border-radius: 12px;
+    background: white;
+    color: #342d46;
+    font: inherit;
+}
+
+.edit-field input:focus {
+    outline: none;
+    border-color: #8b78c6;
+    box-shadow: 0 0 0 4px rgba(139, 120, 198, 0.13);
+}
+
+.edit-field input[readonly] {
+    background: #f4f1f8;
+    color: #81798f;
+}
+
+.edit-field small {
+    color: #81798f;
+    font-size: 12px;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.edit-save,
+.edit-cancel {
+    display: inline-block;
+    padding: 13px 22px;
+    border-radius: 12px;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+}
+
+.edit-save {
+    border: none;
+    background: #8b78c6;
+    color: white;
+    cursor: pointer;
+}
+
+.edit-save:hover {
+    background: #6f5aa8;
+}
+
+.edit-cancel {
+    border: 1px solid #e9e2f2;
+    background: white;
+    color: #6f5aa8;
+}
+
+.edit-cancel:hover {
+    background: #eee9fb;
+    text-decoration: none;
+}
+
+@media (max-width: 600px) {
+    .edit-page {
+        margin: 30px auto;
+    }
+
+    .edit-card {
+        padding: 24px;
+    }
+
+    .edit-actions {
+        flex-direction: column;
+    }
+}
 }
