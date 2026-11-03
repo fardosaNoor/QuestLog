@@ -35,6 +35,10 @@ public class LoginController {
             Authentication authentication,
             Model model) {
 
+        AppUser user = repository.findByEmail(authentication.getName()).orElseThrow();
+        
+        model.addAttribute("coins", user.getCoins());
+
         model.addAttribute(
                 "courses",
                 courseRepository.findByStudentEmailOrderByCodeAsc(

@@ -261,3 +261,14 @@ button:focus-visible, a:focus-visible {
         font-size: 1.1rem;
     }
 }
+
+.coin-balance {
+    display: inline-block;
+    background: var(--white);
+    color: var(--lavender-dark);
+    padding: 11px 18px;
+    border: 2px solid var(--lavender);
+    border-radius: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}

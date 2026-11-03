@@ -19,6 +19,9 @@ public class AppUser {
     @Column(nullable = false)
     private String password;
 
+    @Column (nullable = false)
+    private Integer coins = 100;
+
     protected AppUser() {}
 
     public AppUser(String name, String email, String password) {
@@ -37,5 +40,9 @@ public class AppUser {
 
     public String getPassword() {
         return password;
+    }
+
+    public int getCoins() {
+        return coins;
     }
 }
