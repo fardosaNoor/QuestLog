@@ -45,9 +45,11 @@ public class PlannerController {
     public record CalRow(String time, String title, String source) {}
     public record DayGroup(String label, List<CalRow> rows) {}
     public record PlanRow(StudyPlanner.PlanItem item, String dueLabel) {}
+    public record EventRow(CalendarEvent event, String whenLabel) {}
 
     private final TaskRepository taskRepository;
     private final CourseRepository courseRepository;
+    private final CalendarEventRepository eventRepository;
     private final GoogleCalendarService google;
 
     @Value("${PLANNER_ZONE:America/Vancouver}")
@@ -55,9 +57,11 @@ public class PlannerController {
 
     public PlannerController(TaskRepository taskRepository,
                              CourseRepository courseRepository,
+                             CalendarEventRepository eventRepository,
                              GoogleCalendarService google) {
         this.taskRepository = taskRepository;
         this.courseRepository = courseRepository;
+        this.eventRepository = eventRepository;
         this.google = google;
     }
 
@@ -81,11 +85,14 @@ public class PlannerController {
                 .toList();
 
         model.addAttribute("rows", rows);
+        model.addAttribute("events", eventRepository.findByStudentEmailOrderByStartAtAsc(email).stream()
+                .map(e -> new EventRow(e, whenLabel(e.getStartAt(), e.getEndAt(), zone)))
+                .toList());
         model.addAttribute("courses", courseRepository.findByStudentEmailOrderByCodeAsc(email));
         model.addAttribute("configured", google.isConfigured());
         model.addAttribute("connected", google.isConnected(email));
 
-        // Merged calendar: Google (or sample) events + task due dates.
+        // Merged calendar: Google (or sample) events + QuestLog events + task due dates.
         try {
             model.addAttribute("days", groupByDay(calendarItems(email, zone, now), zone));
         } catch (Exception e) {
@@ -112,8 +119,6 @@ public class PlannerController {
                           @RequestParam String due,
                           @RequestParam(required = false) String courseId,
                           @RequestParam(required = false) String estimateHours,
-                          @RequestParam(required = false) String repeat,
-                          @RequestParam(required = false) List<String> repeatDays,
                           RedirectAttributes redirect) {
 
         String email = authentication.getName();
@@ -161,6 +166,67 @@ public class PlannerController {
             }
         }
 
+        taskRepository.save(new Task(title, dueAt, course, hours, email));
+        redirect.addFlashAttribute("taskMessage", "Task added!");
+        return "redirect:/planner";
+    }
+
+    @PostMapping("/tasks/{id}/toggle")
+    public String toggleTask(Authentication authentication, @PathVariable Long id) {
+        taskRepository.findByIdAndStudentEmail(id, authentication.getName()).ifPresent(task -> {
+            task.toggleDone();
+            taskRepository.save(task);
+        });
+        return "redirect:/planner";
+    }
+
+    @PostMapping("/tasks/{id}/delete")
+    public String deleteTask(Authentication authentication, @PathVariable Long id) {
+        taskRepository.findByIdAndStudentEmail(id, authentication.getName())
+                .ifPresent(taskRepository::delete);
+        return "redirect:/planner";
+    }
+
+    // ---------------- Events ----------------
+
+    @PostMapping("/events")
+    public String addEvent(Authentication authentication,
+                           @RequestParam String title,
+                           @RequestParam String start,
+                           @RequestParam(required = false) String end,
+                           @RequestParam(required = false) String repeat,
+                           @RequestParam(required = false) List<String> repeatDays,
+                           RedirectAttributes redirect) {
+
+        ZoneId zone = ZoneId.of(zoneName);
+        title = title.trim();
+
+        if (title.isBlank()) {
+            return fail(redirect, "Please enter an event title.");
+        }
+        if (title.length() > 120) {
+            return fail(redirect, "Event title must be 120 characters or fewer.");
+        }
+
+        Instant startAt;
+        try {
+            startAt = LocalDateTime.parse(start.trim()).atZone(zone).toInstant();
+        } catch (DateTimeParseException e) {
+            return fail(redirect, "Please choose a valid start date and time.");
+        }
+
+        Instant endAt = null;
+        if (end != null && !end.isBlank()) {
+            try {
+                endAt = LocalDateTime.parse(end.trim()).atZone(zone).toInstant();
+            } catch (DateTimeParseException e) {
+                return fail(redirect, "Please choose a valid end date and time.");
+            }
+            if (!endAt.isAfter(startAt)) {
+                return fail(redirect, "The event must end after it starts.");
+            }
+        }
+
         Recurrence recurrence = Recurrence.NONE;
         if (repeat != null && !repeat.isBlank()) {
             try {
@@ -186,29 +252,16 @@ public class PlannerController {
             }
         }
 
-        taskRepository.save(new Task(title, dueAt, course, hours, email, recurrence, days));
-        redirect.addFlashAttribute("taskMessage", "Task added!");
+        eventRepository.save(new CalendarEvent(title, startAt, endAt, recurrence, days,
+                authentication.getName()));
+        redirect.addFlashAttribute("taskMessage", "Event added!");
         return "redirect:/planner";
     }
 
-    @PostMapping("/tasks/{id}/toggle")
-    public String toggleTask(Authentication authentication, @PathVariable Long id) {
-        taskRepository.findByIdAndStudentEmail(id, authentication.getName()).ifPresent(task -> {
-            task.toggleDone();
-            // Completing a repeating task schedules its next occurrence (only once).
-            Task next = task.createNextOccurrence(ZoneId.of(zoneName));
-            if (next != null) {
-                taskRepository.save(next);
-            }
-            taskRepository.save(task);
-        });
-        return "redirect:/planner";
-    }
-
-    @PostMapping("/tasks/{id}/delete")
-    public String deleteTask(Authentication authentication, @PathVariable Long id) {
-        taskRepository.findByIdAndStudentEmail(id, authentication.getName())
-                .ifPresent(taskRepository::delete);
+    @PostMapping("/events/{id}/delete")
+    public String deleteEvent(Authentication authentication, @PathVariable Long id) {
+        eventRepository.findByIdAndStudentEmail(id, authentication.getName())
+                .ifPresent(eventRepository::delete);
         return "redirect:/planner";
     }
 
@@ -274,6 +327,13 @@ public class PlannerController {
 
         List<CalendarItem> items = new ArrayList<>(google.events(email, from, to, zone));
 
+        for (CalendarEvent e : eventRepository.findByStudentEmailOrderByStartAtAsc(email)) {
+            for (CalendarEvent.Occurrence o : e.occurrencesBetween(from, to, zone)) {
+                Instant end = o.end() != null ? o.end() : o.start();
+                items.add(new CalendarItem(e.getTitle(), o.start(), end, false, "event"));
+            }
+        }
+
         for (Task t : taskRepository.findByStudentEmail(email)) {
             if (!t.getDueAt().isBefore(from) && !t.getDueAt().isAfter(to)) {
                 String course = t.getCourse() != null ? " (" + t.getCourse().getCode() + ")" : "";
@@ -290,6 +350,10 @@ public class PlannerController {
         for (CalendarItem i : items) {
             LocalDate day = i.start().atZone(zone).toLocalDate();
             String time = i.allDay() ? "All day" : TIME_FORMAT.format(i.start().atZone(zone));
+            // QuestLog events show their time range, e.g. "10:00 AM – 11:20 AM".
+            if ("event".equals(i.source()) && i.end().isAfter(i.start())) {
+                time += " – " + TIME_FORMAT.format(i.end().atZone(zone));
+            }
             byDay.computeIfAbsent(day, d -> new ArrayList<>())
                     .add(new CalRow(time, i.title(), i.source()));
         }
@@ -300,6 +364,16 @@ public class PlannerController {
 
     private String format(Instant instant, ZoneId zone) {
         return DUE_FORMAT.format(instant.atZone(zone));
+    }
+
+    // "Mon Nov 16, 10:00 AM – 11:20 AM", or the full end date if it ends on another day.
+    private String whenLabel(Instant start, Instant end, ZoneId zone) {
+        String label = format(start, zone);
+        if (end == null) {
+            return label;
+        }
+        boolean sameDay = start.atZone(zone).toLocalDate().equals(end.atZone(zone).toLocalDate());
+        return label + " – " + (sameDay ? TIME_FORMAT.format(end.atZone(zone)) : format(end, zone));
     }
 
     private String fail(RedirectAttributes redirect, String message) {
