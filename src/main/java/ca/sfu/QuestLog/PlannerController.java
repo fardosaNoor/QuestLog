@@ -2,6 +2,7 @@
 package ca.sfu.QuestLog;
 
 import jakarta.servlet.http.HttpSession;
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,8 +11,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
@@ -109,6 +112,8 @@ public class PlannerController {
                           @RequestParam String due,
                           @RequestParam(required = false) String courseId,
                           @RequestParam(required = false) String estimateHours,
+                          @RequestParam(required = false) String repeat,
+                          @RequestParam(required = false) List<String> repeatDays,
                           RedirectAttributes redirect) {
 
         String email = authentication.getName();
@@ -156,7 +161,32 @@ public class PlannerController {
             }
         }
 
-        taskRepository.save(new Task(title, dueAt, course, hours, email));
+        Recurrence recurrence = Recurrence.NONE;
+        if (repeat != null && !repeat.isBlank()) {
+            try {
+                recurrence = Recurrence.valueOf(repeat.trim());
+            } catch (IllegalArgumentException e) {
+                return fail(redirect, "Please choose a valid repeat option.");
+            }
+        }
+
+        // Weekdays only apply to "Daily"; they are ignored for the other options.
+        Set<DayOfWeek> days = EnumSet.noneOf(DayOfWeek.class);
+        if (recurrence == Recurrence.DAILY && repeatDays != null) {
+            try {
+                for (String d : repeatDays) {
+                    days.add(DayOfWeek.valueOf(d.trim()));
+                }
+            } catch (IllegalArgumentException e) {
+                return fail(redirect, "Please choose valid days of the week.");
+            }
+            if (days.size() > Recurrence.MAX_DAILY_DAYS) {
+                return fail(redirect, "Choose at most " + Recurrence.MAX_DAILY_DAYS
+                        + " days, or none to repeat every day.");
+            }
+        }
+
+        taskRepository.save(new Task(title, dueAt, course, hours, email, recurrence, days));
         redirect.addFlashAttribute("taskMessage", "Task added!");
         return "redirect:/planner";
     }
@@ -165,6 +195,11 @@ public class PlannerController {
     public String toggleTask(Authentication authentication, @PathVariable Long id) {
         taskRepository.findByIdAndStudentEmail(id, authentication.getName()).ifPresent(task -> {
             task.toggleDone();
+            // Completing a repeating task schedules its next occurrence (only once).
+            Task next = task.createNextOccurrence(ZoneId.of(zoneName));
+            if (next != null) {
+                taskRepository.save(next);
+            }
             taskRepository.save(task);
         });
         return "redirect:/planner";
