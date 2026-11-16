@@ -10,6 +10,42 @@
         /* Epic 3 styles live here so they do not conflict with the shared style.css */
         .stack { display: flex; flex-direction: column; gap: 20px; margin-top: 24px; }
         .form-row { display: grid; grid-template-columns: 2fr 1.2fr 1.4fr 0.8fr auto; gap: 12px; align-items: end; }
+        .form-row.event-row { grid-template-columns: 2fr 1.4fr 1.4fr 1.3fr auto; }
+        .event-list { list-style: none; padding: 0; margin: 16px 0 0; }
+        .event-list li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .event-list .event-info { flex: 1; }
+        .event-list .when { color: var(--muted); font-size: 0.9rem; }
+
+        /* Repeat picker: a custom dropdown so "Daily" can open a weekday flyout on hover. */
+        .repeat-picker { position: relative; }
+        .repeat-toggle { width: 100%; text-align: left; background: var(--white); color: var(--text);
+                         border: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .repeat-toggle:hover { background: var(--lavender-light); }
+        .repeat-menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 20; min-width: 100%;
+                       background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+                       box-shadow: var(--shadow); padding: 6px; }
+        .repeat-menu[hidden] { display: none; }
+        .repeat-opt { position: relative; }
+        .repeat-opt > label { display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+                              border-radius: 8px; cursor: pointer; white-space: nowrap; font-weight: 400; }
+        .repeat-opt > label:hover, .repeat-opt:focus-within > label { background: var(--lavender-light); }
+        .repeat-opt input { width: auto; margin: 0; }
+        .repeat-opt .arrow { margin-left: auto; color: var(--muted); }
+        .repeat-days { display: none; position: absolute; top: -6px; left: 100%;
+                       background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+                       box-shadow: var(--shadow); padding: 6px; min-width: 150px; }
+        .repeat-opt.daily.flip .repeat-days { left: auto; right: 100%; }
+        .repeat-days label { display: flex; align-items: center; gap: 8px; padding: 4px 10px;
+                             font-weight: 400; cursor: pointer; border-radius: 8px; }
+        .repeat-days label:hover { background: var(--lavender-light); }
+        .repeat-days label.disabled { color: var(--muted); cursor: not-allowed; }
+        .repeat-days .hint { font-size: 0.78rem; color: var(--muted); padding: 2px 10px 4px; margin: 0; }
+        /* Show the weekdays on hover over "Daily", or while picking them with the keyboard. */
+        .repeat-opt.daily:hover .repeat-days,
+        .repeat-opt.daily:focus-within .repeat-days { display: block; }
+        .repeat-tag { display: inline-block; margin-left: 6px; font-size: 0.78rem; color: #1f7a74; }
+        /* QuestLog events are teal, so they stand apart from Google events (lavender) and tasks (orange). */
+        .cal-row.cal-event { border-left-color: #2a9d8f; background: #e3f5f2; }
         .form-row > div { display: flex; flex-direction: column; gap: 6px; }
         table.tasks { width: 100%; border-collapse: collapse; }
         table.tasks th, table.tasks td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
@@ -26,10 +62,17 @@
         .cal-row { padding: 6px 12px; margin: 3px 0; border-left: 4px solid var(--lavender); background: var(--lavender-light); border-radius: 6px; font-size: 0.92rem; }
         .cal-row.cal-task { border-left-color: #e67e22; background: #fff1e3; }
         .legend span { margin-right: 16px; font-size: 0.85rem; color: var(--muted); }
+        .legend .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px;
+                          margin-right: 6px; vertical-align: -1px; }
         .plan-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
         .plan-item ul { margin: 6px 0 0; padding-left: 20px; color: var(--muted); }
         .crammed { color: #a33d56; font-weight: 700; }
-        @media (max-width: 800px) { .form-row { grid-template-columns: 1fr; } }
+        @media (max-width: 800px) {
+            .form-row { grid-template-columns: 1fr; }
+            /* No room for a side flyout on phones: show the weekdays under "Daily" instead. */
+            .repeat-days { position: static; margin: 4px 0 4px 24px; box-shadow: none; }
+            .repeat-opt.daily:has(input[value="DAILY"]:checked) .repeat-days { display: block; }
+        }
     </style>
 </head>
 <body>
@@ -118,6 +161,76 @@
                 </table>
             </section>
 
+            <!-- Events: scheduled things like lectures or shifts; they can repeat. -->
+            <section class="card">
+                <h2>📌 Events</h2>
+                <form th:action="@{/events}" method="post">
+                    <div class="form-row event-row">
+                        <div>
+                            <label for="eventTitle">Title</label>
+                            <input id="eventTitle" name="title" type="text" maxlength="120"
+                                   placeholder="CMPT 276 lecture" required>
+                        </div>
+                        <div>
+                            <label for="eventStart">Starts</label>
+                            <input id="eventStart" name="start" type="datetime-local" required>
+                        </div>
+                        <div>
+                            <label for="eventEnd">Ends (optional)</label>
+                            <input id="eventEnd" name="end" type="datetime-local">
+                        </div>
+                        <div>
+                            <label for="repeatToggle">Repeat</label>
+                            <div class="repeat-picker" id="repeatPicker">
+                                <button type="button" class="repeat-toggle" id="repeatToggle"
+                                        aria-haspopup="true" aria-expanded="false">No ▾</button>
+                                <div class="repeat-menu" id="repeatMenu" hidden>
+                                    <div class="repeat-opt">
+                                        <label><input type="radio" name="repeat" value="NONE" checked> No</label>
+                                    </div>
+                                    <div class="repeat-opt daily">
+                                        <label><input type="radio" name="repeat" value="DAILY"> Daily
+                                            <span class="arrow">▸</span></label>
+                                        <div class="repeat-days" role="group" aria-label="Days of the week">
+                                            <p class="hint">Pick up to 6 days (none = every day)</p>
+                                            <label><input type="checkbox" name="repeatDays" value="MONDAY"> Monday</label>
+                                            <label><input type="checkbox" name="repeatDays" value="TUESDAY"> Tuesday</label>
+                                            <label><input type="checkbox" name="repeatDays" value="WEDNESDAY"> Wednesday</label>
+                                            <label><input type="checkbox" name="repeatDays" value="THURSDAY"> Thursday</label>
+                                            <label><input type="checkbox" name="repeatDays" value="FRIDAY"> Friday</label>
+                                            <label><input type="checkbox" name="repeatDays" value="SATURDAY"> Saturday</label>
+                                            <label><input type="checkbox" name="repeatDays" value="SUNDAY"> Sunday</label>
+                                        </div>
+                                    </div>
+                                    <div class="repeat-opt">
+                                        <label><input type="radio" name="repeat" value="WEEKLY"> Every week</label>
+                                    </div>
+                                    <div class="repeat-opt">
+                                        <label><input type="radio" name="repeat" value="MONTHLY"> Monthly</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit">Add</button>
+                    </div>
+                </form>
+
+                <p th:if="${#lists.isEmpty(events)}" class="muted">No events yet.</p>
+                <ul class="event-list" th:unless="${#lists.isEmpty(events)}">
+                    <li th:each="e : ${events}">
+                        <div class="event-info">
+                            <strong th:text="${e.event().title}">CMPT 276 lecture</strong>
+                            <span class="repeat-tag" th:if="${e.event().repeating}"
+                                  th:text="'🔁 ' + ${e.event().repeatLabel}">🔁 Every week</span><br>
+                            <span class="when" th:text="${e.whenLabel()}">Mon Nov 16, 10:30 AM – 11:20 AM</span>
+                        </div>
+                        <form class="inline" th:action="@{/events/{id}/delete(id=${e.event().id})}" method="post">
+                            <button type="submit">Delete</button>
+                        </form>
+                    </li>
+                </ul>
+            </section>
+
             <!-- Merged calendar -->
             <section class="card">
                 <h2>📅 Calendar (next 14 days)</h2>
@@ -139,14 +252,16 @@
                 <p th:if="${calendarError}" class="error" role="alert" th:text="${calendarError}"></p>
 
                 <div class="legend">
-                    <span>🟪 Calendar event</span><span>🟧 Task due</span>
+                    <span><i class="swatch" style="background: var(--lavender)"></i>Google Calendar</span>
+                    <span><i class="swatch" style="background: #2a9d8f"></i>My event</span>
+                    <span><i class="swatch" style="background: #e67e22"></i>Task due</span>
                 </div>
 
                 <p th:if="${#lists.isEmpty(days) and calendarError == null}">Nothing in the next 14 days.</p>
                 <div th:each="d : ${days}">
                     <div class="day-label" th:text="${d.label()}">Monday, Nov 2</div>
                     <div class="cal-row" th:each="r : ${d.rows()}"
-                         th:classappend="${r.source() == 'task'} ? 'cal-task'">
+                         th:classappend="${r.source() == 'task'} ? 'cal-task' : (${r.source() == 'event'} ? 'cal-event' : '')">
                         <span th:text="${r.time()}">10:00 AM</span> -
                         <span th:if="${r.source() == 'task'}">Due: </span>
                         <span th:text="${r.title()}">Lecture</span>
@@ -187,6 +302,83 @@
         if (location.search.indexOf('plan=') !== -1) {
             document.getElementById('plan').scrollIntoView();
         }
+
+        // Repeat picker: open/close the menu, keep the button label in sync,
+        // and allow at most 6 weekdays for "Daily".
+        (function () {
+            var MAX_DAYS = 6;
+            var picker = document.getElementById('repeatPicker');
+            var toggle = document.getElementById('repeatToggle');
+            var menu = document.getElementById('repeatMenu');
+            var radios = picker.querySelectorAll('input[name="repeat"]');
+            var days = picker.querySelectorAll('input[name="repeatDays"]');
+            var dailyRadio = picker.querySelector('input[value="DAILY"]');
+            var SHORT = { MONDAY: 'Mon', TUESDAY: 'Tue', WEDNESDAY: 'Wed', THURSDAY: 'Thu',
+                          FRIDAY: 'Fri', SATURDAY: 'Sat', SUNDAY: 'Sun' };
+
+            function setOpen(open) {
+                menu.hidden = !open;
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+
+            function checkedDays() {
+                return Array.prototype.filter.call(days, function (d) { return d.checked; });
+            }
+
+            function refresh() {
+                var picked = checkedDays();
+                // Once 6 days are picked, the 7th can't be ticked.
+                days.forEach(function (d) {
+                    d.disabled = !d.checked && picked.length >= MAX_DAYS;
+                    d.parentElement.classList.toggle('disabled', d.disabled);
+                });
+
+                var selected = picker.querySelector('input[name="repeat"]:checked');
+                var text = selected.parentElement.textContent.replace('▸', '').trim();
+                if (selected.value === 'DAILY' && picked.length > 0) {
+                    text += ' (' + picked.map(function (d) { return SHORT[d.value]; }).join(', ') + ')';
+                }
+                toggle.textContent = text + ' ▾';
+            }
+
+            toggle.addEventListener('click', function () { setOpen(menu.hidden); });
+
+            // Open the weekday list to the left if there isn't room on the right.
+            var dailyOpt = picker.querySelector('.repeat-opt.daily');
+            dailyOpt.addEventListener('mouseenter', function () {
+                var room = window.innerWidth - dailyOpt.getBoundingClientRect().right;
+                dailyOpt.classList.toggle('flip', room < 170);
+            });
+
+            radios.forEach(function (r) {
+                r.addEventListener('change', function () {
+                    // Days only belong to "Daily"; clear them when another option is chosen.
+                    if (r.value !== 'DAILY') {
+                        days.forEach(function (d) { d.checked = false; });
+                        setOpen(false);
+                    }
+                    refresh();
+                });
+            });
+
+            days.forEach(function (d) {
+                d.addEventListener('change', function () {
+                    // Ticking a day means the user wants "Daily".
+                    if (d.checked) { dailyRadio.checked = true; }
+                    refresh();
+                });
+            });
+
+            // Close when clicking elsewhere or pressing Escape.
+            document.addEventListener('click', function (e) {
+                if (!picker.contains(e.target)) { setOpen(false); }
+            });
+            picker.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') { setOpen(false); toggle.focus(); }
+            });
+
+            refresh();
+        })();
     </script>
 
 </body>

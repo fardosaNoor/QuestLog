@@ -30,6 +30,8 @@ public class Task {
     @Column(nullable = false)
     private String studentEmail;
 
+    private Instant completedAt;
+
     protected Task() {}
 
     public Task(String title, Instant dueAt, Course course,
@@ -69,7 +71,17 @@ public class Task {
         return studentEmail;
     }
 
+    public Instant getCompletedAt() {
+        return completedAt;
+    }
+
     public void toggleDone() {
         this.done = !this.done;
+
+        if (this.done) {
+            this.completedAt = Instant.now();
+        } else {
+            this.completedAt = null;
+        }
     }
 }
