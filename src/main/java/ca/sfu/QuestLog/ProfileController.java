@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.CacheControl;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -18,9 +19,11 @@ import org.springframework.web.server.ResponseStatusException;
 @Controller
 public class ProfileController {
     private final AppUserRepository repository;
+    private final TaskRepository taskRepository;
     private final UserProfileRepository profileRepository;
     private final StreakService streakService;
     private final ProfilePhotoService photoService;
+    
 
     public ProfileController(
             AppUserRepository repository,
@@ -32,6 +35,11 @@ public class ProfileController {
         this.profileRepository = profileRepository;
         this.streakService = streakService;
         this.photoService = photoService;
+            TaskRepository taskRepository) {
+
+        this.repository = repository;
+        this.profileRepository = profileRepository;
+        this.taskRepository = taskRepository;
     }
 
     // Display the logged-in student's profile
@@ -67,6 +75,21 @@ public class ProfileController {
 
         model.addAttribute("progressPercent", progressPercent);
         model.addAttribute("daysRemaining", daysRemaining);
+        //from planner epic
+        List<Task> tasks =
+        taskRepository.findByStudentEmail(user.getEmail());
+
+        //Count completed tasks
+        long completedCount = tasks.stream()
+            .filter(Task::isDone)
+            .count();
+
+        //Check First Quest badge
+        boolean firstQuestUnlocked =
+            BadgeCalculator.hasFirstQuest(completedCount);
+
+        model.addAttribute("firstQuestUnlocked", firstQuestUnlocked);
+
         return "profile";
     }
 
@@ -181,4 +204,5 @@ public class ProfileController {
                 .body(photo);
         }
 
+    
 }

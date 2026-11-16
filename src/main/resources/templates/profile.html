@@ -106,7 +106,14 @@
                     <div class="badge-icon">🏅</div>
                     <h3>First Quest</h3>
                     <p>Complete your first task</p>
-                    <span class="locked">🔒 Locked</span>
+
+                    <span class="unlocked" th:if="${firstQuestUnlocked}">
+                        🏆 Unlocked!
+                    </span>
+
+                    <span class="locked" th:unless="${firstQuestUnlocked}">
+                        🔒 Locked
+                    </span>
                 </div>
 
                 <div class="badge">
