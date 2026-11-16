@@ -11,6 +11,7 @@
     <nav class="navbar">
         <a class="logo" th:href="@{/dashboard}">✦ QuestLog</a>
         <div class="nav-actions">
+            <a class="button-link" th:href="@{/planner}">📅 Calendar &amp; Tasks</a>
             <a class="button-link" th:href="@{/courses/new}">+ Add Course</a>
             <form th:action="@{/logout}" method="post">
                 <button type="submit">Log out</button>
