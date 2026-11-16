@@ -295,3 +295,8 @@ button:focus-visible, a:focus-visible {
     font-weight: 700;
     white-space: nowrap;
 }
+
+.shop-heading {
+    text-align: center;
+    margin-top: 56px;
+}
