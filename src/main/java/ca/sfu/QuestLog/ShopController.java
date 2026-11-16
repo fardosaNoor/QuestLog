@@ -39,6 +39,7 @@ public class ShopController {
 
         model.addAttribute("coins", user.getCoins());
         model.addAttribute("ownedItems", ownedItems);
+        model.addAttribute("theme", user.getTheme());
 
         return "shop";
     }
@@ -73,5 +74,22 @@ public class ShopController {
         ownedItemRepository.save(new OwnedItem(itemName, user.getEmail()));
 
         return "redirect:/shop?bought";
+    }
+
+    @PostMapping("/shop/use")
+    public String useItem(
+            Authentication authentication,
+            @RequestParam("itemName") String itemName) {
+
+        AppUser user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+
+        if (!ownedItemRepository.existsByItemNameAndStudentEmail(itemName, user.getEmail())) {
+            return "redirect:/shop?notOwned";
+        }
+
+        user.setTheme(itemName);
+        userRepository.save(user);
+
+        return "redirect:/shop?used";
     }
 }

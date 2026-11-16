@@ -36,6 +36,7 @@ public class ProfileController {
 
         model.addAttribute("user", user);
         model.addAttribute("profile", profile);
+        model.addAttribute("theme", user.getTheme());
 
         return "profile";
     }
@@ -49,6 +50,7 @@ public class ProfileController {
         AppUser user = getCurrentUser(authentication);
 
         model.addAttribute("user", user);
+        model.addAttribute("theme", user.getTheme());
 
         return "edit-profile";
     }

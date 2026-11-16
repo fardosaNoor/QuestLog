@@ -147,8 +147,8 @@ button:focus-visible, a:focus-visible {
 .success {
     padding: 12px 14px;
     border-radius: 10px;
-    background: #eaf7ef;
-    color: var(--success);
+    background: var(--lavender-light);
+    color: var(--lavender-dark);
 }
 
 /* Dashboard */
@@ -328,6 +328,6 @@ button:focus-visible, a:focus-visible {
     color: var(--white);
 }
 
-.owned {
-    opacity: 0.4;
+.in-use {
+    opacity: 0.5;
 }
