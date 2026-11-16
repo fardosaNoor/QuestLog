@@ -35,8 +35,37 @@
 
             <h2>👤 Personal Information</h2>
 
-            <div class="info-grid">
+            <div class="profile-photo-section">
+                <div class="profile-avatar">
+                    <span th:text="${#strings.substring(user.name, 0, 1)}">
+                        S
+                    </span>
 
+                    <img th:src="@{/profile/photo}"
+                        alt="Profile picture"
+                        onerror="this.style.display='none'">
+                </div>
+
+                <form th:action="@{/profile/photo}"
+                    method="post"
+                    enctype="multipart/form-data"
+                    class="photo-upload-form">
+
+                    <label for="photo">Choose profile picture</label>
+
+                    <input type="file"
+                        id="photo"
+                        name="photo"
+                        accept="image/jpeg,image/png"
+                        required>
+
+                    <button type="submit">
+                        Upload Photo
+                    </button>
+                </form>
+
+            </div>
+            <div class="info-grid">
                 <div class="info-box">
                     <span class="info-label">Name</span>
                     <strong th:text="${user.name}">
@@ -192,51 +221,53 @@
             </section>
 
 
-            <!-- STUDY STREAK -->
+            <!-- STUDY STREAK -->  
             <section class="profile-section streak-card">
 
-                <h2>🔥 My Study Streak</h2>
-
-                <p class="section-description">
-                    Track your daily study consistency
-                    toward your goal.
-                </p>
-
-                <div class="goal-display">
-                    Your Goal:
-                    <strong th:text="${profile.streakGoal}">
-                        7
-                    </strong>
-                    days
+                <div class="streak-header">
+                    <div>
+                        <h2>🔥 My Study Streak</h2>
+                        <p class="section-description">
+                            Keep your study momentum going
+                        </p>
+                    </div>
+                    <div class="streak-flame">🔥</div>
                 </div>
 
-                <p class="tracking-status">
-                    Tracking not connected yet
-                </p>
+                <div class="streak-count">
+                    <strong th:text="${currentStreak}">0</strong>
+                    <span th:text="${currentStreak == 1 ? 'day streak' : 'days streak'}">
+                        days streak
+                    </span>
+                </div>
 
+                <div class="streak-progress-info">
+                    <span>Progress to your goal</span>
+                    <strong th:text="|${currentStreak} / ${profile.streakGoal} days|">
+                        0 / 7 days
+                    </strong>
+                </div>
                 <div class="streak-progress"
                     role="progressbar"
-                    aria-label="Study streak progress unavailable"
-                    aria-valuetext="Tracking not connected yet">
+                    aria-label="Study streak progress"
+                    aria-valuemin="0"
+                    th:attr="aria-valuenow=${currentStreak},
+                            aria-valuemax=${profile.streakGoal}">
 
                     <div class="streak-progress-fill"
-                        style="width: 0%;">
+                        th:style="|width: ${progressPercent}%;|">
                     </div>
-
                 </div>
 
-                <p class="streak-unavailable">
-                    Your streak progress will appear
-                    when task completion tracking
-                    is connected.
-                </p>
+                <div class="streak-progress-footer">
+                    <span th:text="|${progressPercent}% completed|">
+                        0% completed
+                    </span>
 
-            </section>
-
-            
-
-        </div>
-
+                    <span th:text="|${daysRemaining} days to goal|">
+                        7 days to goal
+                    </span>
+                </div>
     </main>
 
 </body>
