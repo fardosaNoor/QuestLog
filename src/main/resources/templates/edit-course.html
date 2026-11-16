@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Course | QuestLog</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a class="logo" th:href="@{/dashboard}">✦ QuestLog</a>
+        <a th:href="@{/dashboard}">Back to Dashboard</a>
+    </nav>
+
+    <main>
+        <section class="card">
+            <h1>Edit Course</h1>
+
+            <p th:if="${param.error}" class="error">
+            Please fill in all fields.
+            </p>
+
+            <form th:action="@{/courses/{id}/edit(id=${course.id})}"
+                  th:object="${course}" method="post">
+
+                <label for="code">Course code</label>
+                <input id="code" type="text" th:field="*{code}" required>
+
+                <label for="name">Course name</label>
+                <input id="name" type="text" th:field="*{name}" required>
+
+                <label for="semester">Semester</label>
+                <input id="semester" type="text" th:field="*{semester}" required>
+
+                <button type="submit">Save Changes</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

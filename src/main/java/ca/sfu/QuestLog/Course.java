@@ -47,4 +47,15 @@ public class Course {
     public String getSemester() {
         return semester;
     }
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setSemester(String semester) {
+        this.semester = semester;
+    }
 }

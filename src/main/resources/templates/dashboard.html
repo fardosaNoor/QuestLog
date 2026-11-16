@@ -29,6 +29,14 @@
         </section>
 
         <p th:if="${param.added}" class="success">Course added successfully!</p>
+        
+        <p th:if="${param.updated}" class="success">
+        Course updated successfully!
+        </p>
+
+        <p th:if="${param.deleted}" class="success">
+        Course deleted successfully!
+        </p>
 
         <div class="dashboard-grid">
             <section class="card">
@@ -38,6 +46,12 @@
                     <h3 th:text="${course.code}">CMPT 276</h3>
                     <p th:text="${course.name}">Course name</p>
                     <p th:text="${course.semester}">Fall 2026</p>
+                    <a th:href="@{/courses/{id}/edit(id=${course.id})}">Edit</a>
+                    <form th:action="@{/courses/{id}/delete(id=${course.id})}"
+                            method="post"
+                            onsubmit="return confirm('Are you sure you want to delete this course?');">
+                        <button type="submit">Delete</button>
+                    </form>
                     <hr>
                 </div>
             </section>
