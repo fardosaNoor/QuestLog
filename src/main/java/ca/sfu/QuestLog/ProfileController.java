@@ -1,5 +1,6 @@
 package ca.sfu.QuestLog;
 
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -12,14 +13,18 @@ import org.springframework.web.server.ResponseStatusException;
 @Controller
 public class ProfileController {
     private final AppUserRepository repository;
+    private final TaskRepository taskRepository;
     private final UserProfileRepository profileRepository;
+    
 
     public ProfileController(
             AppUserRepository repository,
-            UserProfileRepository profileRepository) {
+            UserProfileRepository profileRepository,
+            TaskRepository taskRepository) {
 
         this.repository = repository;
         this.profileRepository = profileRepository;
+        this.taskRepository = taskRepository;
     }
 
     // Display the logged-in student's profile
@@ -36,6 +41,21 @@ public class ProfileController {
 
         model.addAttribute("user", user);
         model.addAttribute("profile", profile);
+
+        //from planner epic
+        List<Task> tasks =
+        taskRepository.findByStudentEmail(user.getEmail());
+
+        //Count completed tasks
+        long completedCount = tasks.stream()
+            .filter(Task::isDone)
+            .count();
+
+        //Check First Quest badge
+        boolean firstQuestUnlocked =
+            BadgeCalculator.hasFirstQuest(completedCount);
+
+        model.addAttribute("firstQuestUnlocked", firstQuestUnlocked);
 
         return "profile";
     }
@@ -112,4 +132,6 @@ public class ProfileController {
                                 HttpStatus.NOT_FOUND,
                                 "User not found"));
     }
+
+    
 }
