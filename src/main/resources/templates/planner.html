@@ -1,0 +1,193 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planner | QuestLog</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* Epic 3 styles live here so they do not conflict with the shared style.css */
+        .stack { display: flex; flex-direction: column; gap: 20px; margin-top: 24px; }
+        .form-row { display: grid; grid-template-columns: 2fr 1.2fr 1.4fr 0.8fr auto; gap: 12px; align-items: end; }
+        .form-row > div { display: flex; flex-direction: column; gap: 6px; }
+        table.tasks { width: 100%; border-collapse: collapse; }
+        table.tasks th, table.tasks td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        table.tasks tr.done td { text-decoration: line-through; color: var(--muted); }
+        form.inline { display: inline-flex; flex-direction: row; margin: 0; }
+        form.inline button { padding: 6px 12px; font-size: 0.85rem; }
+        .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; color: #fff; }
+        .u-overdue { background: #c0392b; }
+        .u-urgent { background: #e67e22; }
+        .u-soon { background: #d4a017; }
+        .u-later { background: var(--success); }
+        .banner { padding: 10px 14px; border-radius: 10px; background: #fff7e0; color: #7a5b00; font-size: 0.9rem; }
+        .day-label { margin: 16px 0 4px; font-weight: 700; color: var(--text); }
+        .cal-row { padding: 6px 12px; margin: 3px 0; border-left: 4px solid var(--lavender); background: var(--lavender-light); border-radius: 6px; font-size: 0.92rem; }
+        .cal-row.cal-task { border-left-color: #e67e22; background: #fff1e3; }
+        .legend span { margin-right: 16px; font-size: 0.85rem; color: var(--muted); }
+        .plan-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .plan-item ul { margin: 6px 0 0; padding-left: 20px; color: var(--muted); }
+        .crammed { color: #a33d56; font-weight: 700; }
+        @media (max-width: 800px) { .form-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a class="logo" th:href="@{/dashboard}">✦ QuestLog</a>
+        <div class="nav-actions">
+            <a class="button-link" th:href="@{/dashboard}">Dashboard</a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit">Log out</button>
+            </form>
+        </div>
+    </nav>
+
+    <main>
+        <section class="welcome">
+            <span class="badge">PLANNER</span>
+            <h1>Tasks &amp; Calendar 🗓️</h1>
+            <p>Add tasks, see what is urgent, and plan when to start.</p>
+        </section>
+
+        <div class="stack">
+
+            <p th:if="${taskMessage}" class="success" th:text="${taskMessage}"></p>
+            <p th:if="${taskError}" class="error" role="alert" th:text="${taskError}"></p>
+
+            <!-- Add task -->
+            <section class="card">
+                <h2>➕ Add a task</h2>
+                <form th:action="@{/tasks}" method="post">
+                    <div class="form-row">
+                        <div>
+                            <label for="title">Title</label>
+                            <input id="title" name="title" type="text" maxlength="120"
+                                   placeholder="Assignment 2" required>
+                        </div>
+                        <div>
+                            <label for="courseId">Course</label>
+                            <select id="courseId" name="courseId">
+                                <option value="">(no course)</option>
+                                <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.code}">CMPT 276</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="due">Due</label>
+                            <input id="due" name="due" type="datetime-local" required>
+                        </div>
+                        <div>
+                            <label for="estimateHours">Est. hours</label>
+                            <input id="estimateHours" name="estimateHours" type="number"
+                                   min="0.5" max="200" step="0.5" placeholder="2">
+                        </div>
+                        <button type="submit">Add</button>
+                    </div>
+                </form>
+                <p class="muted" th:if="${#lists.isEmpty(courses)}">
+                    You have no courses yet. <a th:href="@{/courses/new}">Add a course</a> to link tasks to it.
+                </p>
+            </section>
+
+            <!-- Task list, most urgent first -->
+            <section class="card">
+                <h2>✅ Tasks (most urgent first)</h2>
+                <p th:if="${#lists.isEmpty(rows)}">No tasks yet. Add your first one above.</p>
+                <table class="tasks" th:unless="${#lists.isEmpty(rows)}">
+                    <thead>
+                        <tr><th>Urgency</th><th>Task</th><th>Course</th><th>Due</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="r : ${rows}" th:classappend="${r.task().done} ? 'done'">
+                            <td><span class="pill" th:classappend="${'u-' + r.urgency().level()}"
+                                      th:text="${r.urgency().level()}">urgent</span></td>
+                            <td th:text="${r.task().title}">Assignment 2</td>
+                            <td th:text="${r.task().course != null} ? ${r.task().course.code} : '-'">CMPT 276</td>
+                            <td th:text="${r.dueLabel()}">Mon Nov 9, 11:59 PM</td>
+                            <td>
+                                <form class="inline" th:action="@{/tasks/{id}/toggle(id=${r.task().id})}" method="post">
+                                    <button type="submit" th:text="${r.task().done} ? 'Undo' : 'Done'">Done</button>
+                                </form>
+                                <form class="inline" th:action="@{/tasks/{id}/delete(id=${r.task().id})}" method="post">
+                                    <button type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Merged calendar -->
+            <section class="card">
+                <h2>📅 Calendar (next 14 days)</h2>
+
+                <div th:if="${connected}">
+                    <p>Google Calendar is connected.</p>
+                    <form class="inline" th:action="@{/calendar/disconnect}" method="post">
+                        <button type="submit">Disconnect Google Calendar</button>
+                    </form>
+                </div>
+                <p th:if="${!connected and configured}" class="banner">
+                    Showing sample events. <a th:href="@{/auth/google}">Connect Google Calendar</a> to see your own.
+                </p>
+                <p th:if="${!connected and !configured}" class="banner">
+                    Showing sample events. Google Calendar is not set up on this server yet
+                    (needs GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and GOOGLE_REDIRECT_URI).
+                </p>
+
+                <p th:if="${calendarError}" class="error" role="alert" th:text="${calendarError}"></p>
+
+                <div class="legend">
+                    <span>🟪 Calendar event</span><span>🟧 Task due</span>
+                </div>
+
+                <p th:if="${#lists.isEmpty(days) and calendarError == null}">Nothing in the next 14 days.</p>
+                <div th:each="d : ${days}">
+                    <div class="day-label" th:text="${d.label()}">Monday, Nov 2</div>
+                    <div class="cal-row" th:each="r : ${d.rows()}"
+                         th:classappend="${r.source() == 'task'} ? 'cal-task'">
+                        <span th:text="${r.time()}">10:00 AM</span> -
+                        <span th:if="${r.source() == 'task'}">Due: </span>
+                        <span th:text="${r.title()}">Lecture</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Study plan -->
+            <section class="card" id="plan">
+                <h2>🧠 Study plan</h2>
+                <p>Suggests when to start each task so the work is spread out instead of crammed.</p>
+                <p><a class="button-link" th:href="@{/planner(plan=1)}">Generate study plan</a></p>
+
+                <div th:if="${plan != null}">
+                    <p th:if="${#lists.isEmpty(plan)}">No unfinished tasks to plan. Add some above.</p>
+                    <div class="plan-item" th:each="p : ${plan}">
+                        <strong th:text="${p.item().title()}">Assignment 2</strong>
+                        <span th:if="${p.item().courseCode() != ''}" th:text="'(' + ${p.item().courseCode()} + ')'"></span>
+                        - due <span th:text="${p.dueLabel()}">Mon Nov 9</span><br>
+                        Start by <strong th:text="${p.item().startBy()}">2026-11-05</strong>,
+                        <span th:text="${p.item().totalHours()}">6</span>h total
+                        <span class="crammed" th:if="${p.item().crammed()}">
+                            - not enough days left to spread this out!
+                        </span>
+                        <ul>
+                            <li th:each="s : ${p.item().sessions()}"
+                                th:text="${s.date()} + ': ' + ${s.hours()} + 'h'">2026-11-05: 2.0h</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        // After "Generate study plan" the page reloads; scroll back down to the plan.
+        if (location.search.indexOf('plan=') !== -1) {
+            document.getElementById('plan').scrollIntoView();
+        }
+    </script>
+
+</body>
+</html>

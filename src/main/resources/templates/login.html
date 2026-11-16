@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | QuestLog</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <main class="auth-card">
+        <h1>QuestLog</h1>
+        <p>Your next achievement starts here.</p>
+
+        <p th:if="${param.error}">
+            Invalid email or password. Please try again.
+        </p>
+
+        <p th:if="${param.logout}">
+            You have logged out successfully.
+        </p>
+
+        <form th:action="@{/login}" method="post">
+            <label for="username">Email</label>
+            <input id="username" name="username"
+                   type="email" required autocomplete="email">
+
+            <label for="password">Password</label>
+            <input id="password" name="password"
+                   type="password" required
+                   autocomplete="current-password">
+
+            <button type="submit">Log in</button>
+        </form>
+    </main>
+
+    <p th:if="${param.registered}">
+    Account created successfully! You can now log in.
+    </p>
+
+    <p>New to QuestLog?
+        <a th:href="@{/register}">Create an account</a>
+    </p>    
+</body>
+</html>

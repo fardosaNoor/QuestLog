@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | QuestLog</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a class="logo" th:href="@{/dashboard}">✦ QuestLog</a>
+        <div class="nav-actions">
+            <a class="button-link" th:href="@{/courses/new}">+ Add Course</a>
+            <a class="button-link" th:href="@{/shop}">Shop</a>
+            <span class="coin-balance"><span th:text="${coins}">0</span> coins</span>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit">Log out</button>
+            </form>
+        </div>
+    </nav>
+
+    <main>
+        <section class="welcome">
+            <span class="badge">YOUR STUDENT ADVENTURE</span>
+            <h1>Welcome to QuestLog ✨</h1>
+            <p>Your semester, organized one course at a time.</p>
+        </section>
+
+        <p th:if="${param.added}" class="success">Course added successfully!</p>
+        
+        <p th:if="${param.updated}" class="success">
+        Course updated successfully!
+        </p>
+
+        <p th:if="${param.deleted}" class="success">
+        Course deleted successfully!
+        </p>
+
+        <div class="dashboard-grid">
+            <section class="card">
+                <h2>📚 My Courses</h2>
+                <p th:if="${#lists.isEmpty(courses)}">No courses yet. Add your first course!</p>
+                <div th:each="course : ${courses}">
+                    <h3 th:text="${course.code}">CMPT 276</h3>
+                    <p th:text="${course.name}">Course name</p>
+                    <p th:text="${course.semester}">Fall 2026</p>
+                    <a th:href="@{/courses/{id}/edit(id=${course.id})}">Edit</a>
+                    <form th:action="@{/courses/{id}/delete(id=${course.id})}"
+                            method="post"
+                            onsubmit="return confirm('Are you sure you want to delete this course?');">
+                        <button type="submit">Delete</button>
+                    </form>
+                    <hr>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>⭐ Your Progress</h2>
+                <p>Your study streaks and achievements will appear here.</p>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

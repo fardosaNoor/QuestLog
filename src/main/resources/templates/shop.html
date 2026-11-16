@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop | QuestLog</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <a class="logo" th:href="@{/dashboard}">✦ QuestLog</a>
+        <div class="nav-actions">
+            <a class="button-link" th:href="@{/dashboard}">Dashboard</a>
+            <span class="coin-balance"><span th:text="${coins}">0</span> coins</span>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit">Log out</button>
+            </form>
+        </div>
+    </nav>
+
+    <main>
+        <section class="welcome">
+            <span class="badge">REWARDS SHOP</span>
+            <h1>Shop</h1>
+            <p>Spend the coins you earn on themes, avatars and power-ups.</p>
+        </section>
+
+        <div class="dashboard-grid">
+            <section class="card">
+                <span class="badge">Coming soon</span>
+                <h3>Item name</h3>
+                <p>? coins</p>
+            </section>
+
+            <section class="card">
+                <span class="badge">Coming soon</span>
+                <h3>Item name</h3>
+                <p>? coins</p>
+            </section>
+
+            <section class="card">
+                <span class="badge">Coming soon</span>
+                <h3>Item name</h3>
+                <p>? coins</p>
+            </section>
+
+            <section class="card">
+                <span class="badge">Coming soon</span>
+                <h3>Item name</h3>
+                <p>? coins</p>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

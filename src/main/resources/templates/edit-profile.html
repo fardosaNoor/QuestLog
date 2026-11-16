@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Profile | QuestLog</title>
+
+    <link rel="stylesheet"
+          th:href="@{/css/profile.css}">
+</head>
+
+<body>
+    <main class="edit-page">
+
+        <div class="edit-card">
+
+            <div class="edit-header">
+                <div>
+                    <h1>Edit Profile</h1>
+                    <p>Update your personal information</p>
+                </div>
+            </div>
+
+            <hr class="edit-divider">
+
+            <form th:action="@{/profile/edit}"
+                  method="post"
+                  class="edit-form">
+
+                <input type="hidden"
+                       th:name="${_csrf.parameterName}"
+                       th:value="${_csrf.token}">
+
+                <div class="edit-field">
+                    <label for="name">Display Name</label>
+
+                    <input type="text"
+                           id="name"
+                           name="name"
+                           th:value="${user.name}"
+                           required
+                           maxlength="100"
+                           placeholder="Enter your name">
+                </div>
+
+                <div class="edit-field">
+                    <label for="email">Email Address</label>
+
+                    <input type="email"
+                           id="email"
+                           th:value="${user.email}"
+                           readonly>
+
+                    <small>
+                        Your email address cannot be changed here.
+                    </small>
+                </div>
+
+                <div class="edit-actions">
+                    <button type="submit"
+                            class="edit-save">
+                        Save Changes
+                    </button>
+
+                    <a th:href="@{/profile}"
+                       class="edit-cancel">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+
+    </main>
+</body>
+</html>
