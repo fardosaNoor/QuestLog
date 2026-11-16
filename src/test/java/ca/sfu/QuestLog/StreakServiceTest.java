@@ -2,6 +2,7 @@ package ca.sfu.QuestLog;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -9,7 +10,11 @@ import java.time.ZoneId;
 import java.util.List;
 
 public class StreakServiceTest {
-    private final StreakService service = new StreakService();
+    private final TaskRepository taskRepository =
+        mock(TaskRepository.class);
+
+    private final StreakService service =
+            new StreakService(taskRepository);
 
     private final ZoneId zone = ZoneId.of("America/Vancouver");
 
