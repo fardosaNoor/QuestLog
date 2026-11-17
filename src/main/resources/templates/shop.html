@@ -31,6 +31,9 @@
         <p th:if="${param.notEnoughCoins}" class="error">Not enough coins.</p>
         <p th:if="${param.owned}" class="error">You already own this item.</p>
         <p th:if="${param.notOwned}" class="error">You need to buy this theme first.</p>
+        <p th:if="${param.frozen}" class="success">Streak freeze used! Your streak is safe today.</p>
+        <p th:if="${param.noFreezes}" class="error">You don't have any streak freezes.</p>
+        <p th:if="${param.alreadyFrozen}" class="error">You already used a streak freeze today.</p>
 
         <h2 class="shop-heading">Themes</h2>
         <div class="dashboard-grid">
@@ -145,9 +148,22 @@
         <h2 class="shop-heading">Utility</h2>
         <div class="dashboard-grid">
             <section class="card">
-                <span class="badge">Coming soon</span>
-                <h3>Item name</h3>
-                <p>? coins</p>
+                <div class="shop-card-top">
+                    <span class="item-icon">🧊</span>
+                    <div class="shop-card-actions">
+                        <form th:if="${streakFreezes > 0 and !frozenToday}"
+                              th:action="@{/shop/freeze/use}" method="post">
+                            <button type="submit" class="buy-button">Use</button>
+                        </form>
+                        <form th:action="@{/shop/freeze/buy}" method="post">
+                            <button type="submit" class="buy-button">Buy</button>
+                        </form>
+                    </div>
+                </div>
+                <h3>Streak Freeze</h3>
+                <p>80 coins</p>
+                <p>You have <span th:text="${streakFreezes}">0</span></p>
+                <span th:if="${frozenToday}" class="badge">Streak protected today</span>
             </section>
 
             <section class="card">

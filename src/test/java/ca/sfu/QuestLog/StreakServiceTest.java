@@ -13,8 +13,8 @@ public class StreakServiceTest {
     private final TaskRepository taskRepository =
         mock(TaskRepository.class);
 
-    private final StreakService service =
-            new StreakService(taskRepository);
+        private final StreakService service =
+            new StreakService(taskRepository, mock(FrozenDayRepository.class));
 
     private final ZoneId zone = ZoneId.of("America/Vancouver");
 
