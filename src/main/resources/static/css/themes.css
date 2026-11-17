@@ -1,0 +1,23 @@
+.theme-green {
+    --lavender: #579c72;
+    --lavender-dark: #3b6e4e;
+    --lavender-light: #daf1e3;
+}
+
+.theme-red {
+    --lavender: #c76c6f;
+    --lavender-dark: #a94a4d;
+    --lavender-light: #f8dddd;
+}
+
+.theme-pink {
+    --lavender: #d1769f;
+    --lavender-dark: #ac4f7a;
+    --lavender-light: #fce1ed;
+}
+
+.theme-blue {
+    --lavender: #6a99cf;
+    --lavender-dark: #366096;
+    --lavender-light: #d9e9fa;
+}

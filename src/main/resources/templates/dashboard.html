@@ -6,8 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | QuestLog</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/themes.css}">
 </head>
-<body>
+<body th:class="${theme}">
     <nav class="navbar">
         <a class="logo" th:href="@{/dashboard}">✦ QuestLog</a>
         <div class="nav-actions">

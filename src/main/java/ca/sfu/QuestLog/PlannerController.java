@@ -51,18 +51,21 @@ public class PlannerController {
     private final CourseRepository courseRepository;
     private final CalendarEventRepository eventRepository;
     private final GoogleCalendarService google;
+    private final AppUserRepository userRepository;
 
     @Value("${PLANNER_ZONE:America/Vancouver}")
     private String zoneName;
 
-    public PlannerController(TaskRepository taskRepository,
+        public PlannerController(TaskRepository taskRepository,
                              CourseRepository courseRepository,
                              CalendarEventRepository eventRepository,
-                             GoogleCalendarService google) {
+                             GoogleCalendarService google,
+                             AppUserRepository userRepository) {
         this.taskRepository = taskRepository;
         this.courseRepository = courseRepository;
         this.eventRepository = eventRepository;
         this.google = google;
+        this.userRepository = userRepository;
     }
 
     // ---------------- Planner page ----------------
@@ -73,6 +76,9 @@ public class PlannerController {
                           Model model) {
 
         String email = authentication.getName();
+        AppUser user = userRepository.findByEmail(email).orElseThrow();
+        model.addAttribute("theme", user.getTheme());
+
         ZoneId zone = ZoneId.of(zoneName);
         Instant now = Instant.now();
 

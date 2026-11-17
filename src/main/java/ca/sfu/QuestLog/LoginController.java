@@ -38,6 +38,7 @@ public class LoginController {
         AppUser user = repository.findByEmail(authentication.getName()).orElseThrow();
         
         model.addAttribute("coins", user.getCoins());
+        model.addAttribute("theme", user.getTheme());
 
         model.addAttribute(
                 "courses",
@@ -48,7 +49,14 @@ public class LoginController {
     }
 
     @GetMapping("/courses/new")
-    public String showAddCourse() {
+    public String showAddCourse(
+            Authentication authentication,
+            Model model) {
+
+        AppUser user = repository.findByEmail(authentication.getName()).orElseThrow();
+
+        model.addAttribute("theme", user.getTheme());
+
         return "add-course";
     }
 

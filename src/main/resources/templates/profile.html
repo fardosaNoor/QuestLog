@@ -7,9 +7,10 @@
           content="width=device-width, initial-scale=1.0">
     <title>My Profile - QuestLog</title>
     <link rel="stylesheet" th:href="@{/css/profile.css}">
+    <link rel="stylesheet" th:href="@{/css/themes.css}">
 </head>
 
-<body>
+<body th:class="${theme}">
     <main class="profile-container">
         <!-- PAGE HEADER -->
         <header class="profile-header">

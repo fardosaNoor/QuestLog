@@ -22,6 +22,8 @@ public class AppUser {
     @Column (nullable = false)
     private Integer coins = 100;
 
+    private String theme;
+
     protected AppUser() {}
 
     public AppUser(String name, String email, String password) {
@@ -53,6 +55,18 @@ public class AppUser {
 
     public int getCoins() {
         return coins;
+    }
+
+    public void setCoins(int coins) {
+        this.coins = coins;
+    }
+
+    public String getTheme() {
+        return theme;
+    }
+
+    public void setTheme(String theme) {
+        this.theme = theme;
     }
  
 }

@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shop | QuestLog</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/themes.css}">
 </head>
-<body>
+<body th:class="${theme}">
     <nav class="navbar">
         <a class="logo" th:href="@{/dashboard}">✦ QuestLog</a>
         <div class="nav-actions">
@@ -22,9 +23,126 @@
         <section class="welcome">
             <span class="badge">REWARDS SHOP</span>
             <h1>Shop</h1>
-            <p>Spend the coins you earn on themes, avatars and power-ups.</p>
+            <p>Spend the coins you earn on themes, profile frames and utility items.</p>
         </section>
 
+        <p th:if="${param.bought}" class="success">Purchase successful!</p>
+        <p th:if="${param.used}" class="success">Theme changed!</p>
+        <p th:if="${param.notEnoughCoins}" class="error">Not enough coins.</p>
+        <p th:if="${param.owned}" class="error">You already own this item.</p>
+        <p th:if="${param.notOwned}" class="error">You need to buy this theme first.</p>
+
+        <h2 class="shop-heading">Themes</h2>
+        <div class="dashboard-grid">
+            <section class="card"
+                     th:classappend="${theme == 'theme-green'} ? 'in-use'">
+                <div class="shop-card-top">
+                    <span class="color-icon theme-green"></span>
+                    <form th:unless="${#lists.contains(ownedItems, 'theme-green')}"
+                          th:action="@{/shop/buy}" method="post">
+                        <input type="hidden" name="itemName" value="theme-green">
+                        <button type="submit" class="buy-button">Buy</button>
+                    </form>
+                    <form th:if="${#lists.contains(ownedItems, 'theme-green') and theme != 'theme-green'}"
+                          th:action="@{/shop/use}" method="post">
+                        <input type="hidden" name="itemName" value="theme-green">
+                        <button type="submit" class="buy-button">Use</button>
+                    </form>
+                    <span th:if="${theme == 'theme-green'}" class="badge">In use</span>
+                </div>
+                <h3>Green</h3>
+                <p>10 coins</p>
+            </section>
+
+            <section class="card"
+                     th:classappend="${theme == 'theme-red'} ? 'in-use'">
+                <div class="shop-card-top">
+                    <span class="color-icon theme-red"></span>
+                    <form th:unless="${#lists.contains(ownedItems, 'theme-red')}"
+                          th:action="@{/shop/buy}" method="post">
+                        <input type="hidden" name="itemName" value="theme-red">
+                        <button type="submit" class="buy-button">Buy</button>
+                    </form>
+                    <form th:if="${#lists.contains(ownedItems, 'theme-red') and theme != 'theme-red'}"
+                          th:action="@{/shop/use}" method="post">
+                        <input type="hidden" name="itemName" value="theme-red">
+                        <button type="submit" class="buy-button">Use</button>
+                    </form>
+                    <span th:if="${theme == 'theme-red'}" class="badge">In use</span>
+                </div>
+                <h3>Red</h3>
+                <p>10 coins</p>
+            </section>
+
+            <section class="card"
+                     th:classappend="${theme == 'theme-pink'} ? 'in-use'">
+                <div class="shop-card-top">
+                    <span class="color-icon theme-pink"></span>
+                    <form th:unless="${#lists.contains(ownedItems, 'theme-pink')}"
+                          th:action="@{/shop/buy}" method="post">
+                        <input type="hidden" name="itemName" value="theme-pink">
+                        <button type="submit" class="buy-button">Buy</button>
+                    </form>
+                    <form th:if="${#lists.contains(ownedItems, 'theme-pink') and theme != 'theme-pink'}"
+                          th:action="@{/shop/use}" method="post">
+                        <input type="hidden" name="itemName" value="theme-pink">
+                        <button type="submit" class="buy-button">Use</button>
+                    </form>
+                    <span th:if="${theme == 'theme-pink'}" class="badge">In use</span>
+                </div>
+                <h3>Pink</h3>
+                <p>10 coins</p>
+            </section>
+
+            <section class="card"
+                     th:classappend="${theme == 'theme-blue'} ? 'in-use'">
+                <div class="shop-card-top">
+                    <span class="color-icon theme-blue"></span>
+                    <form th:unless="${#lists.contains(ownedItems, 'theme-blue')}"
+                          th:action="@{/shop/buy}" method="post">
+                        <input type="hidden" name="itemName" value="theme-blue">
+                        <button type="submit" class="buy-button">Buy</button>
+                    </form>
+                    <form th:if="${#lists.contains(ownedItems, 'theme-blue') and theme != 'theme-blue'}"
+                          th:action="@{/shop/use}" method="post">
+                        <input type="hidden" name="itemName" value="theme-blue">
+                        <button type="submit" class="buy-button">Use</button>
+                    </form>
+                    <span th:if="${theme == 'theme-blue'}" class="badge">In use</span>
+                </div>
+                <h3>Blue</h3>
+                <p>10 coins</p>
+            </section>
+        </div>
+
+        <h2 class="shop-heading">Profile Frames</h2>
+        <div class="dashboard-grid">
+            <section class="card">
+                <span class="badge">Coming soon</span>
+                <h3>Item name</h3>
+                <p>? coins</p>
+            </section>
+
+            <section class="card">
+                <span class="badge">Coming soon</span>
+                <h3>Item name</h3>
+                <p>? coins</p>
+            </section>
+
+            <section class="card">
+                <span class="badge">Coming soon</span>
+                <h3>Item name</h3>
+                <p>? coins</p>
+            </section>
+
+            <section class="card">
+                <span class="badge">Coming soon</span>
+                <h3>Item name</h3>
+                <p>? coins</p>
+            </section>
+        </div>
+
+        <h2 class="shop-heading">Utility</h2>
         <div class="dashboard-grid">
             <section class="card">
                 <span class="badge">Coming soon</span>

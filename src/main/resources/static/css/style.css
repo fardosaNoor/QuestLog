@@ -147,8 +147,8 @@ button:focus-visible, a:focus-visible {
 .success {
     padding: 12px 14px;
     border-radius: 10px;
-    background: #eaf7ef;
-    color: var(--success);
+    background: var(--lavender-light);
+    color: var(--lavender-dark);
 }
 
 /* Dashboard */
@@ -294,4 +294,40 @@ button:focus-visible, a:focus-visible {
     border-radius: 12px;
     font-weight: 700;
     white-space: nowrap;
+}
+
+.shop-heading {
+    text-align: center;
+    margin-top: 56px;
+}
+
+.shop-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.color-icon {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--lavender);
+}
+
+.buy-button {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--lavender-light);
+    color: var(--lavender-dark);
+    font-size: 0.85rem;
+}
+
+.buy-button:hover {
+    background: var(--lavender);
+    color: var(--white);
+}
+
+.in-use {
+    opacity: 0.5;
 }
