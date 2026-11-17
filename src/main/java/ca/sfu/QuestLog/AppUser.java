@@ -24,6 +24,8 @@ public class AppUser {
 
     private String theme;
 
+    private Integer streakFreezes = 0;
+
     protected AppUser() {}
 
     public AppUser(String name, String email, String password) {
@@ -67,6 +69,17 @@ public class AppUser {
 
     public void setTheme(String theme) {
         this.theme = theme;
+    }
+
+    public int getStreakFreezes() {
+        if (streakFreezes == null) {
+            return 0;
+        }
+        return streakFreezes;
+    }
+
+    public void setStreakFreezes(int streakFreezes) {
+        this.streakFreezes = streakFreezes;
     }
  
 }

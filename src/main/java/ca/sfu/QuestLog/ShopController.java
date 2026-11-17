@@ -1,5 +1,7 @@
 package ca.sfu.QuestLog;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -16,12 +18,15 @@ public class ShopController {
 
     private final AppUserRepository userRepository;
     private final OwnedItemRepository ownedItemRepository;
+    private final FrozenDayRepository frozenDayRepository;
 
     public ShopController(
             AppUserRepository userRepository,
-            OwnedItemRepository ownedItemRepository) {
+            OwnedItemRepository ownedItemRepository,
+            FrozenDayRepository frozenDayRepository) {
         this.userRepository = userRepository;
         this.ownedItemRepository = ownedItemRepository;
+        this.frozenDayRepository = frozenDayRepository;
     }
 
     @GetMapping("/shop")
@@ -37,9 +42,13 @@ public class ShopController {
             ownedItems.add(ownedItem.getItemName());
         }
 
+        LocalDate today = LocalDate.now(ZoneId.of("America/Vancouver"));
+
         model.addAttribute("coins", user.getCoins());
         model.addAttribute("ownedItems", ownedItems);
         model.addAttribute("theme", user.getTheme());
+        model.addAttribute("streakFreezes", user.getStreakFreezes());
+        model.addAttribute("frozenToday", frozenDayRepository.existsByStudentEmailAndFrozenDate(user.getEmail(), today));
 
         return "shop";
     }
@@ -91,5 +100,46 @@ public class ShopController {
         userRepository.save(user);
 
         return "redirect:/shop?used";
+    }
+
+    @PostMapping("/shop/freeze/buy")
+    public String buyStreakFreeze(Authentication authentication) {
+
+        int price = 80;
+
+        AppUser user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+
+        if (user.getCoins() < price) {
+            return "redirect:/shop?notEnoughCoins";
+        }
+
+        user.setCoins(user.getCoins() - price);
+        user.setStreakFreezes(user.getStreakFreezes() + 1);
+        userRepository.save(user);
+
+        return "redirect:/shop?bought";
+    }
+
+    @PostMapping("/shop/freeze/use")
+    public String useStreakFreeze(Authentication authentication) {
+
+        AppUser user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+
+        LocalDate today = LocalDate.now(ZoneId.of("America/Vancouver"));
+
+        if (user.getStreakFreezes() < 1) {
+            return "redirect:/shop?noFreezes";
+        }
+
+        if (frozenDayRepository.existsByStudentEmailAndFrozenDate(user.getEmail(), today)) {
+            return "redirect:/shop?alreadyFrozen";
+        }
+
+        user.setStreakFreezes(user.getStreakFreezes() - 1);
+        userRepository.save(user);
+
+        frozenDayRepository.save(new FrozenDay(user.getEmail(), today));
+
+        return "redirect:/shop?frozen";
     }
 }

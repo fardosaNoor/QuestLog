@@ -15,9 +15,13 @@ import org.springframework.stereotype.Service;
 public class StreakService {
 
     private final TaskRepository taskRepository;
+    private final FrozenDayRepository frozenDayRepository;
 
-    public StreakService(TaskRepository taskRepository) {
+    public StreakService(
+            TaskRepository taskRepository,
+            FrozenDayRepository frozenDayRepository) {
         this.taskRepository = taskRepository;
+        this.frozenDayRepository = frozenDayRepository;
     }
 
     // NEW: Get streak using a student's real tasks
@@ -33,6 +37,11 @@ public class StreakService {
                 .collect(Collectors.toList());
 
         ZoneId zone = ZoneId.of("America/Vancouver");
+
+        // Days protected by a streak freeze count as active days
+        for (FrozenDay frozenDay : frozenDayRepository.findByStudentEmail(studentEmail)) {
+            completedAtTimes.add(frozenDay.getFrozenDate().atStartOfDay(zone).toInstant());
+        }
 
         return getCurrentStreak(
                 completedAtTimes,
