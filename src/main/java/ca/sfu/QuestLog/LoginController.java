@@ -8,6 +8,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 public class LoginController {
@@ -47,6 +50,74 @@ public class LoginController {
 
         return "dashboard";
     }
+
+
+
+    @GetMapping("/courses/{id}/edit")
+    public String showEditCourse(
+            @PathVariable Long id,
+            Authentication authentication,
+            Model model) {
+
+        Course course = courseRepository
+                .findByIdAndStudentEmail(id, authentication.getName())
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        model.addAttribute("course", course);
+
+        return "edit-course";
+    }
+
+    @PostMapping("/courses/{id}/edit")
+    public String updateCourse(
+            @PathVariable Long id,
+            @RequestParam String code,
+            @RequestParam String name,
+            @RequestParam String semester,
+            Authentication authentication) {
+
+        Course course = courseRepository
+                .findByIdAndStudentEmail(id, authentication.getName())
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        code = code.trim().toUpperCase();
+        name = name.trim();
+        semester = semester.trim();
+
+        if (code.isBlank() || name.isBlank() || semester.isBlank()) {
+            return "redirect:/courses/" + id + "/edit?error";
+        }
+
+        course.setCode(code);
+        course.setName(name);
+        course.setSemester(semester);
+
+        courseRepository.save(course);
+
+        return "redirect:/dashboard?updated";
+    }
+
+    @PostMapping("/courses/{id}/delete")
+    public String deleteCourse(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        Course course = courseRepository
+                .findByIdAndStudentEmail(id, authentication.getName())
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+     courseRepository.deleteById(course.getId());
+
+        return "redirect:/dashboard?deleted";
+    }
+
+
+
+
+
 
     @GetMapping("/courses/new")
     public String showAddCourse(
