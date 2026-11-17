@@ -25,4 +25,8 @@ public class BadgeCalculator {
 
         return badges;
     }
+
+    public static boolean hasFirstQuest(long completedCount) {
+        return completedCount >= 1;
+    }
 }
