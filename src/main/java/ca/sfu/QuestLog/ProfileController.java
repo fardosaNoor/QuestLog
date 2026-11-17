@@ -1,45 +1,43 @@
 package ca.sfu.QuestLog;
 
-
 import java.io.IOException;
-import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
+
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.CacheControl;
-import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 public class ProfileController {
+
     private final AppUserRepository repository;
     private final TaskRepository taskRepository;
     private final UserProfileRepository profileRepository;
     private final StreakService streakService;
     private final ProfilePhotoService photoService;
-    
 
+    // One constructor with all dependencies
     public ProfileController(
             AppUserRepository repository,
             UserProfileRepository profileRepository,
+            TaskRepository taskRepository,
             StreakService streakService,
             ProfilePhotoService photoService) {
 
         this.repository = repository;
         this.profileRepository = profileRepository;
+        this.taskRepository = taskRepository;
         this.streakService = streakService;
         this.photoService = photoService;
-            TaskRepository taskRepository) {
-
-        this.repository = repository;
-        this.profileRepository = profileRepository;
-        this.taskRepository = taskRepository;
     }
 
     // Display the logged-in student's profile
@@ -57,12 +55,9 @@ public class ProfileController {
         model.addAttribute("user", user);
         model.addAttribute("profile", profile);
 
-        //getting the student's streak
+        // Study streak tracking
         int currentStreak =
-        streakService.getCurrentStreak(user.getEmail());
-
-        //sending to thymeleaf
-        model.addAttribute("currentStreak", currentStreak);
+                streakService.getCurrentStreak(user.getEmail());
 
         int goal = profile.getStreakGoal();
 
@@ -71,24 +66,28 @@ public class ProfileController {
                 Math.round(currentStreak * 100.0 / goal)
         );
 
-        int daysRemaining = Math.max(0, goal - currentStreak);
+        int daysRemaining =
+                Math.max(0, goal - currentStreak);
 
+        model.addAttribute("currentStreak", currentStreak);
         model.addAttribute("progressPercent", progressPercent);
         model.addAttribute("daysRemaining", daysRemaining);
-        //from planner epic
+
+        // First Quest badge
         List<Task> tasks =
-        taskRepository.findByStudentEmail(user.getEmail());
+                taskRepository.findByStudentEmail(user.getEmail());
 
-        //Count completed tasks
         long completedCount = tasks.stream()
-            .filter(Task::isDone)
-            .count();
+                .filter(Task::isDone)
+                .count();
 
-        //Check First Quest badge
         boolean firstQuestUnlocked =
-            BadgeCalculator.hasFirstQuest(completedCount);
+                BadgeCalculator.hasFirstQuest(completedCount);
 
-        model.addAttribute("firstQuestUnlocked", firstQuestUnlocked);
+        model.addAttribute(
+                "firstQuestUnlocked",
+                firstQuestUnlocked
+        );
 
         return "profile";
     }
@@ -123,7 +122,6 @@ public class ProfileController {
         }
 
         user.setName(cleanName);
-
         repository.save(user);
 
         return "redirect:/profile";
@@ -135,7 +133,10 @@ public class ProfileController {
             Authentication authentication,
             @RequestParam("streakGoal") int streakGoal) {
 
-        if (streakGoal != 7 && streakGoal != 14 && streakGoal != 30) {
+        if (streakGoal != 7
+                && streakGoal != 14
+                && streakGoal != 30) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Invalid streak goal");
@@ -148,14 +149,55 @@ public class ProfileController {
                 .orElseGet(() -> new UserProfile(user.getId()));
 
         profile.setStreakGoal(streakGoal);
-
         profileRepository.save(profile);
 
         return "redirect:/profile";
     }
 
-    // Find the currently logged-in student
-    private AppUser getCurrentUser(Authentication authentication) {
+    // Upload profile picture
+    @PostMapping("/profile/photo")
+    public String uploadProfilePhoto(
+            Authentication authentication,
+            @RequestParam("photo") MultipartFile photo)
+            throws IOException {
+
+        AppUser user = getCurrentUser(authentication);
+
+        try {
+            photoService.savePhoto(user.getId(), photo);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    e.getMessage());
+        }
+
+        return "redirect:/profile";
+    }
+
+    // Retrieve profile picture
+    @GetMapping("/profile/photo")
+    public ResponseEntity<byte[]> viewProfilePhoto(
+            Authentication authentication)
+            throws IOException {
+
+        AppUser user = getCurrentUser(authentication);
+
+        byte[] photo =
+                photoService.getPhoto(user.getId());
+
+        if (photo == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .cacheControl(CacheControl.noStore())
+                .body(photo);
+    }
+
+    // Find currently logged-in student
+    private AppUser getCurrentUser(
+            Authentication authentication) {
 
         String email = authentication.getName();
 
@@ -165,44 +207,4 @@ public class ProfileController {
                                 HttpStatus.NOT_FOUND,
                                 "User not found"));
     }
-
-
-        @PostMapping("/profile/photo")
-        public String uploadProfilePhoto(
-                Authentication authentication,
-                @RequestParam("photo") MultipartFile photo)
-                throws IOException {
-
-        AppUser user = getCurrentUser(authentication);
-
-        try {
-                photoService.savePhoto(user.getId(), photo);
-        } catch (IllegalArgumentException e) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, e.getMessage());
-        }
-
-        return "redirect:/profile";
-        }
-
-        @GetMapping("/profile/photo")
-        public ResponseEntity<byte[]> viewProfilePhoto(
-                Authentication authentication)
-                throws IOException {
-
-        AppUser user = getCurrentUser(authentication);
-
-        byte[] photo = photoService.getPhoto(user.getId());
-
-        if (photo == null) {
-                return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_PNG)
-                .cacheControl(CacheControl.noStore())
-                .body(photo);
-        }
-
-    
 }
