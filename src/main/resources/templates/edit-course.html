@@ -6,12 +6,10 @@
     <title>Edit Course | QuestLog</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/themes.css}">
+    <link rel="stylesheet" th:href="@{/css/nav.css}">
 </head>
 <body th:class="${theme}">
-    <nav class="navbar">
-        <a class="logo" th:href="@{/dashboard}">✦ QuestLog</a>
-        <a th:href="@{/dashboard}">Back to Dashboard</a>
-    </nav>
+    <nav th:replace="~{fragments/navbar :: navbar('dashboard')}"></nav>
 
     <main>
         <section class="card">

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    Shared navigation bar for every logged-in page.
+    Usage:  <nav th:replace="~{fragments/navbar :: navbar('planner')}"></nav>
+    `active` is one of: dashboard, planner, shop, profile (highlights that button).
+    Each page must also load /css/nav.css.
+-->
+<nav th:fragment="navbar(active)" class="site-nav" aria-label="Main">
+    <a class="site-nav-logo" th:href="@{/dashboard}">✦ QuestLog</a>
+
+    <div class="site-nav-links">
+        <a class="site-nav-link" th:href="@{/dashboard}"
+           th:classappend="${active == 'dashboard'} ? 'is-active'"
+           th:attr="aria-current=${active == 'dashboard'} ? 'page'">Dashboard</a>
+
+        <a class="site-nav-link" th:href="@{/planner}"
+           th:classappend="${active == 'planner'} ? 'is-active'"
+           th:attr="aria-current=${active == 'planner'} ? 'page'">Calendar &amp; Tasks</a>
+
+        <a class="site-nav-link" th:href="@{/shop}"
+           th:classappend="${active == 'shop'} ? 'is-active'"
+           th:attr="aria-current=${active == 'shop'} ? 'page'">Shop</a>
+
+        <!--/* Coin balance; NavbarModelAdvice supplies "coins" on every logged-in page. */-->
+        <span class="site-nav-coins" th:if="${coins != null}">
+            <span th:text="${coins}">0</span> coins
+        </span>
+
+        <form class="site-nav-logout" th:action="@{/logout}" method="post">
+            <button type="submit" class="site-nav-link">Log out</button>
+        </form>
+
+        <!--/* Profile: the user's photo, or a placeholder silhouette if they haven't uploaded one.
+             /profile/photo returns 404 when there's no photo, so the <img> removes itself. */-->
+        <a class="site-nav-avatar" th:href="@{/profile}"
+           th:classappend="${active == 'profile'} ? 'is-active'"
+           th:attr="aria-current=${active == 'profile'} ? 'page'"
+           aria-label="Profile" title="Profile">
+            <svg class="site-nav-avatar-placeholder" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="9" r="4"/>
+                <path d="M4 20c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/>
+            </svg>
+            <img th:src="@{/profile/photo}" alt="" onerror="this.remove()">
+        </a>
+    </div>
+</nav>
+
+</body>
+</html>
