@@ -9,9 +9,11 @@
 
     <link rel="stylesheet" th:href="@{/css/profile.css}">
     <link rel="stylesheet" th:href="@{/css/themes.css}">
+    <link rel="stylesheet" th:href="@{/css/nav.css}">
 </head>
 
 <body th:class="${theme}">
+    <nav th:replace="~{fragments/navbar :: navbar('profile')}"></nav>
     <main class="edit-page">
 
         <div class="edit-card">
